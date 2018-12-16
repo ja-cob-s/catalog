@@ -44,6 +44,7 @@
                 {% endwith %}  
 
                 <div class="list-group">
+                <h4 class="mb-1" style="text-align:center">Recently Added Items</h4>
                     {% for i in items %}
                         <a href={{url_for('showCategory', category_id = i.category_id)}} class="list-group-item list-group-item-action flex-column align-items-start">
                             <div class="d-flex w-100 justify-content-between">
@@ -54,20 +55,6 @@
                         </a>
                     {% endfor %}
                 </div>
-
-                <!--<div class="card-columns">
-                    {% for i in items %}
-
-                        <div class="card border-dark mb-3" style="max-width: 18rem;">
-                            <div class="card-header">{{i.name}}</div>
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-2 text-muted">{{i.description}}</h6>
-                                <p class="card-text">{{i.price}}</p>
-                            </div>
-                        </div>
-                        
-                    {% endfor %}
-                    </div>-->
             </div>
         </main>
         <!-- End Main Content -->

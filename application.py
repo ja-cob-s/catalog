@@ -61,7 +61,7 @@ def itemJSON(category_id, item_id):
 def showCatalog():
     session = connect()
     categories = session.query(Category).all()
-    items = session.query(Item).order_by(desc(Item.id)).limit(5).all()
+    items = session.query(Item).order_by(desc(Item.id)).limit(10).all()
     return render_template('catalog.html', categories=categories, items=items)
 
 

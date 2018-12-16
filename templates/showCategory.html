@@ -26,7 +26,10 @@
             <div class="jumbotron jumbotron-fluid">
                 <div class="container">
                     <h1 class="display-4">{{category.name}}</h1>
-                    <p class="lead"><a href={{ url_for('newItem', category_id=category.id) }}>Create New Item</a></p>
+                    <p class="lead"><a href={{ url_for('newItem', category_id=category.id) }}>Create New Item</a> | 
+                    <a href={{ url_for('editCategory', category_id=category.id) }}>Edit Category</a> | 
+                    <a href={{ url_for('deleteCategory', category_id=category.id) }}>Delete Category</a>
+                    </p>
                 </div>
             </div>
 
