@@ -19,6 +19,30 @@ def connect():
     return session
 
 
+# JSON endpoint for catalog categories
+@app.route('/catalog/JSON')
+def catalogJSON():
+    session = connect()
+    catalog = session.query(Category).all()
+    return jsonify(Categories=[c.serialize for c in catalog])
+
+
+# JSON endpoint for category items
+@app.route('/catalog/<int:category_id>/items/JSON')
+def categoryJSON(category_id):
+    session = connect()
+    items = session.query(Item).filter_by(category_id = category_id).all()
+    return jsonify(Items=[i.serialize for i in items])
+
+
+# JSON endpoint for a single item
+@app.route('/catalog/<int:category_id>/items/<int:item_id>/JSON')
+def itemJSON(category_id, item_id):
+    session = connect()
+    item = session.query(Item).filter_by(category_id = category_id, id = item_id).one()
+    return jsonify(Item=item.serialize)
+
+
 # Show catalog main page
 @app.route('/')
 @app.route('/catalog/')
@@ -118,7 +142,7 @@ def editItem(category_id, item_id):
         return render_template('editItem.html', category_id = category_id, item_id = item_id, item=item)
 
 
-# Delte an item
+# Delete an item
 @app.route('/catalog/<int:category_id>/items/<int:item_id>/delete', methods=['GET', 'POST'])
 def deleteItem(category_id, item_id):
     session = connect()
