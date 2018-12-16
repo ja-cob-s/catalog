@@ -17,17 +17,17 @@
 
     <!-- GOOGLE PLUS SIGN IN BUTTON-->
             
-            <div id="signinButton">
+        <div id="signinButton">
             <span class="g-signin"
                 data-scope="openid email"
-                data-clientid="690635059596-nk25ktt6t606jnltnktib73b0mmkdpsm.apps.googleusercontent.com"
+                data-clientid="35054319029-lp5d8a1qt0l1jj0fg6ei84do7b8cikjs.apps.googleusercontent.com"
                 data-redirecturi="postmessage"
                 data-accesstype="offline"
                 data-cookiepolicy="single_host_origin"
                 data-callback="signInCallback"
                 data-approvalprompt="force">
             </span>
-            </div>
+        </div>
 
     <!--END GOOGLE PLUS SIGN IN BUTTON -->
 
@@ -50,12 +50,12 @@
                     if (result) {
                     $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
                     setTimeout(function() {
-                    window.location.href = "/restaurant";
+                    window.location.href = "/catalog";
                     }, 4000);
                     
                 } else if (authResult['error']) {
                 console.log('There was an error: ' + authResult['error']);
-            } else {
+                } else {
                     $('#result').html('Failed to make a server-side call. Check your configuration and console.');
                     }
                 }

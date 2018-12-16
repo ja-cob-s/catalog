@@ -1,0 +1,63 @@
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+        
+    <div id="inner_remaining" class="row no-gutters">
+
+        <!-- Begin Sidebar -->
+        <nav class="col-md-2 bg-light">
+            <div class="list-group">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Categories</span>
+                </h6>
+                    {% for c in categories %}
+                        <a class="list-group-item list-group-item-action bg-light" href={{ url_for('publicCategory', category_id=c.id)}}>{{c.name}}</a>
+                    {% endfor %}
+            </div>
+        </nav>
+        <!-- End Sidebar -->
+
+        <!-- Begin Main Content -->
+
+
+        <main role="main" class="col-md-10">
+            <div class="jumbotron jumbotron-fluid">
+                <div class="container">
+                    <h1 class="display-4">Catalog</h1>
+                    <p class="lead"></p>
+                </div>
+            </div>
+
+            <div class = 'pane'>
+                {% with messages = get_flashed_messages() %}
+                
+                    {% if messages %}
+                    <div class="alert alert-primary" role="alert">
+                        <ul>
+                        {% for message in messages %}
+                        <li><strong>{{message}}</strong></li>
+                        {% endfor %}
+                        </ul>
+                    </div> 
+                    {% endif %}
+                    
+                {% endwith %}  
+
+                <div class="list-group">
+                <h4 class="mb-1" style="text-align:center">Recently Added Items</h4>
+                    {% for i in items %}
+                        <a href={{url_for('publicCategory', category_id = i.category_id)}} class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{i.name}}</h5>
+                            {{i.price}}
+                            </div>
+                            <p class="mb-1">{{i.description}}</p>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+        <!-- End Main Content -->
+    </div>
+
+{% endblock %}
