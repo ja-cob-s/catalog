@@ -54,7 +54,6 @@ class Item(Base):
             'description': self.description,
             'id': self.id,
             'price': self.price,
-            'course': self.course,
         }
 
 
