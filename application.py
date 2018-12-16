@@ -81,6 +81,57 @@ def showCategory(category_id):
     return render_template('showCategory.html', category=category, items=items)
 
 
+# Add a new item
+@app.route('/catalog/<int:category_id>/items/new', methods=['GET', 'POST'])
+def newItem(category_id):
+    session = connect()
+    if request.method == 'POST':
+        newItem = Item(name = request.form['name'], description = request.form['description'],
+            price = request.form['price'], category_id = category_id)
+        session.add(newItem)
+        session.commit()
+        flash("New item '%s' created!" % newItem.name)
+        return redirect(url_for('showCategory', category_id = category_id))
+    else:
+        return render_template('newItem.html', category_id = category_id)
+
+
+# Edit an item
+@app.route('/catalog/<int:category_id>/items/<int:item_id>/edit', methods=['GET', 'POST'])
+def editItem(category_id, item_id):
+    session = connect()
+    item = session.query(Item).filter_by(category_id = category_id, id = item_id).one()
+    if request.method == 'POST':
+        if request.form['name']:
+            item.name = request.form['name']
+            flash("Item renamed to '%s'!" % item.name)
+        if request.form['price']:
+            item.price = request.form['price']
+            flash("Item '%s' price changed to %s!" % (item.name, item.price))
+        if request.form['description']:
+            item.description = request.form['description']
+            flash("Item '%s' description changed!" % item.name)
+        session.add(item)
+        session.commit()
+        return redirect(url_for('showCategory', category_id = category_id))
+    else:
+        return render_template('editItem.html', category_id = category_id, item_id = item_id, item=item)
+
+
+# Delte an item
+@app.route('/catalog/<int:category_id>/items/<int:item_id>/delete', methods=['GET', 'POST'])
+def deleteItem(category_id, item_id):
+    session = connect()
+    item = session.query(Item).filter_by(category_id = category_id, id = item_id).one()
+    if request.method == 'POST':
+        session.delete(item)
+        session.commit()
+        flash("Item '%s' deleted!" % item.name) 
+        return redirect(url_for('showCategory', category_id = category_id))
+    else:
+        return render_template('deleteItem.html', category_id = category_id, item_id = item_id, item=item)
+
+
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True
