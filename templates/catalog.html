@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+    </head>
+    <body>
+
+            <div class="jumbotron jumbotron-fluid">
+                <div class="container">
+                    <h1 class="display-4">Catalog</h1>
+                    <p class="lead"><a href={{ url_for('newCategory') }}>Add Category</a></p>
+                </div>
+            </div>
+
+        <div class = 'pane'>
+
+            {% with messages = get_flashed_messages() %}
+            
+                {% if messages %}
+                <div class="alert alert-primary" role="alert">
+                    <ul>
+                    {% for message in messages %}
+                    <li><strong>{{message}}</strong></li>
+                    {% endfor %}
+                    </ul>
+                </div> 
+                {% endif %}
+                
+            {% endwith %}  
+
+            <div class="card-columns">
+                {% for c in categories %}
+
+                    <div class="card border-dark mb-3" style="max-width: 18rem;">
+                        <div class="card-body">
+                            <h5 class="card-title"><a href={{ url_for('showCategory', category_id=c.id)}}>{{c.name}}</a></h5>
+                        </div>
+                        <div class="card-footer">
+                            <a href={{ url_for('editCategory', category_id=c.id) }} class="btn btn-primary btn-sm">Edit</a>
+                            <a href={{ url_for('deleteCategory', category_id=c.id) }} class="btn btn-danger btn-sm">Delete</a>
+                        </div>
+                    </div>
+
+            {% endfor %}
+            </div>
+        </div>
+    </body>
+</html>
