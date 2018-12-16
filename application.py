@@ -6,6 +6,9 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
+from flask import session as login_session
+import random
+import string
 
 app = Flask(__name__)
 
@@ -17,6 +20,15 @@ def connect():
     DBSession = sessionmaker(bind = engine)
     session = DBSession()
     return session
+
+
+# Create anti-forgery state token
+@app.route('/login')
+def showLogin():
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in xrange(32))
+    login_session['state'] = state
+    return render_template('login.html', STATE=state)
 
 
 # JSON endpoint for catalog categories
@@ -56,6 +68,7 @@ def showCatalog():
 @app.route('/catalog/new/', methods=['GET', 'POST'])
 def newCategory():
     session = connect()
+    categories = session.query(Category).all()
     if request.method == 'POST':
         category = Category(name = request.form['name'])
         session.add(category)
@@ -63,13 +76,14 @@ def newCategory():
         flash("New category '%s' created!" % category.name)
         return redirect(url_for('showCatalog'))
     else:
-        return render_template('newCategory.html')
+        return render_template('newCategory.html', categories=categories)
 
 
 # Edit a category
 @app.route('/catalog/<int:category_id>/edit', methods=['GET', 'POST'])
 def editCategory(category_id):
     session = connect()
+    categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one()
     if request.method == 'POST':
         if request.form['name']:
@@ -78,13 +92,14 @@ def editCategory(category_id):
         session.add(category)
         session.commit()
         return redirect(url_for('showCatalog'))
-    return render_template('editCategory.html', category_id=category_id, category=category)
+    return render_template('editCategory.html', category_id=category_id, category=category, categories=categories)
 
 
 # Delete a category
 @app.route('/catalog/<int:category_id>/delete', methods=['GET', 'POST'])
 def deleteCategory(category_id):
     session = connect()
+    categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one()
     if request.method == 'POST':
         session.delete(category)
@@ -92,7 +107,7 @@ def deleteCategory(category_id):
         flash("Category %s deleted!" % category.name)
         return redirect(url_for('showCatalog'))
     else:
-        return render_template('deleteCategory.html', category_id=category_id, category=category)
+        return render_template('deleteCategory.html', category_id=category_id, category=category, categories=categories)
 
 
 # Show a category
@@ -100,30 +115,33 @@ def deleteCategory(category_id):
 @app.route('/catalog/<int:category_id>/items')
 def showCategory(category_id):
     session = connect()
+    categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one()
     items = session.query(Item).filter_by(category_id=category.id).all()
-    return render_template('showCategory.html', category=category, items=items)
+    return render_template('showCategory.html', category=category, items=items, categories=categories)
 
 
 # Add a new item
 @app.route('/catalog/<int:category_id>/items/new', methods=['GET', 'POST'])
 def newItem(category_id):
     session = connect()
+    categories = session.query(Category).all()
     if request.method == 'POST':
         newItem = Item(name = request.form['name'], description = request.form['description'],
             price = request.form['price'], category_id = category_id)
         session.add(newItem)
         session.commit()
         flash("New item '%s' created!" % newItem.name)
-        return redirect(url_for('showCategory', category_id = category_id))
+        return redirect(url_for('showCategory', category_id = category_id, categories=categories))
     else:
-        return render_template('newItem.html', category_id = category_id)
+        return render_template('newItem.html', category_id = category_id, categories=categories)
 
 
 # Edit an item
 @app.route('/catalog/<int:category_id>/items/<int:item_id>/edit', methods=['GET', 'POST'])
 def editItem(category_id, item_id):
     session = connect()
+    categories = session.query(Category).all()
     item = session.query(Item).filter_by(category_id = category_id, id = item_id).one()
     if request.method == 'POST':
         if request.form['name']:
@@ -137,23 +155,24 @@ def editItem(category_id, item_id):
             flash("Item '%s' description changed!" % item.name)
         session.add(item)
         session.commit()
-        return redirect(url_for('showCategory', category_id = category_id))
+        return redirect(url_for('showCategory', category_id = category_id, categories=categories))
     else:
-        return render_template('editItem.html', category_id = category_id, item_id = item_id, item=item)
+        return render_template('editItem.html', category_id = category_id, item_id = item_id, item=item, categories=categories)
 
 
 # Delete an item
 @app.route('/catalog/<int:category_id>/items/<int:item_id>/delete', methods=['GET', 'POST'])
 def deleteItem(category_id, item_id):
     session = connect()
+    categories = session.query(Category).all()
     item = session.query(Item).filter_by(category_id = category_id, id = item_id).one()
     if request.method == 'POST':
         session.delete(item)
         session.commit()
         flash("Item '%s' deleted!" % item.name) 
-        return redirect(url_for('showCategory', category_id = category_id))
+        return redirect(url_for('showCategory', category_id = category_id, categories=categories))
     else:
-        return render_template('deleteItem.html', category_id = category_id, item_id = item_id, item=item)
+        return render_template('deleteItem.html', category_id = category_id, item_id = item_id, item=item, categories=categories)
 
 
 if __name__ == '__main__':

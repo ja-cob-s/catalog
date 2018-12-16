@@ -1,34 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-        <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
-    </head>
-    <body>
+{% extends "main.html" %}
+{% block content %}
+{% include "header.html" %}
+        
+    <div id="inner_remaining" class="row no-gutters">
 
-        <div class="jumbotron jumbotron-fluid">
-            <div class="container">
-                <h1 class="display-4">New Category</h1>
+        <!-- Begin Sidebar -->
+        <nav class="col-md-2 bg-light">
+            <div class="list-group">
+                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                    <span>Categories</span>
+                </h6>
+                    {% for c in categories %}
+                        <a class="list-group-item list-group-item-action bg-light" href={{ url_for('showCategory', category_id=c.id)}}>{{c.name}}</a>
+                    {% endfor %}
             </div>
-        </div>
+        </nav>
+        <!-- End Sidebar -->
 
-        <div class = 'pane'>
+        <!-- Begin Main Content -->
 
-            <form action="{{url_for('newCategory')}}" method = 'POST'>
-                <div class="form-group">
-                    <dl>
-                        <dt><label for="name">Name</label></dt>
-                            <dd><input type='text' size='30' name='name'></dd>
-                    </dl>
-                    <input type='submit' value='Create' class='btn btn-primary'>
-                    <a href={{url_for('showCatalog')}} class="btn btn-danger">Cancel</a>
+
+        <main role="main" class="col-md-10">
+            <div class="jumbotron jumbotron-fluid">
+                <div class="container">
+                    <h1 class="display-4">New Category</h1>
                 </div>
+            </div>
 
-            </form>
-        </div>
-    </body>
-</html>
+            <div class = 'pane'>
+
+                <form action="{{url_for('newCategory')}}" method = 'POST'>
+                    <div class="form-group">
+                        <dl>
+                            <dt><label for="name">Name</label></dt>
+                                <dd><input type='text' size='30' name='name'></dd>
+                        </dl>
+                        <input type='submit' value='Create' class='btn btn-primary'>
+                        <a href={{url_for('showCatalog')}} class="btn btn-danger">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </main>
+        <!-- End Main Content -->
+    </div>
+    
+{% endblock %}
