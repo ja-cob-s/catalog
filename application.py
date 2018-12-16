@@ -3,7 +3,7 @@
 # For the Udacity Full Stack Web Developer Nanodegree
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
 from flask import session as login_session
@@ -61,7 +61,8 @@ def itemJSON(category_id, item_id):
 def showCatalog():
     session = connect()
     categories = session.query(Category).all()
-    return render_template('catalog.html', categories=categories)
+    items = session.query(Item).order_by(desc(Item.id)).limit(5).all()
+    return render_template('catalog.html', categories=categories, items=items)
 
 
 # Add new category

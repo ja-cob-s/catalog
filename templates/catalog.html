@@ -43,21 +43,31 @@
                     
                 {% endwith %}  
 
-                <div class="card-columns">
-                    {% for c in categories %}
-
-                        <div class="card border-dark mb-3" style="max-width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title"><a href={{ url_for('showCategory', category_id=c.id)}}>{{c.name}}</a></h5>
+                <div class="list-group">
+                    {% for i in items %}
+                        <a href={{url_for('showCategory', category_id = i.category_id)}} class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{i.name}}</h5>
+                            {{i.price}}
                             </div>
-                            <div class="card-footer">
-                                <a href={{ url_for('editCategory', category_id=c.id) }} class="btn btn-primary btn-sm">Edit</a>
-                                <a href={{ url_for('deleteCategory', category_id=c.id) }} class="btn btn-danger btn-sm">Delete</a>
-                            </div>
-                        </div>
-
+                            <p class="mb-1">{{i.description}}</p>
+                        </a>
                     {% endfor %}
                 </div>
+
+                <!--<div class="card-columns">
+                    {% for i in items %}
+
+                        <div class="card border-dark mb-3" style="max-width: 18rem;">
+                            <div class="card-header">{{i.name}}</div>
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">{{i.description}}</h6>
+                                <p class="card-text">{{i.price}}</p>
+                            </div>
+                        </div>
+                        
+                    {% endfor %}
+                    </div>-->
             </div>
         </main>
         <!-- End Main Content -->
