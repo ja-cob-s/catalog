@@ -37,10 +37,12 @@ def connect():
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
+    session = connect()
+    categories = session.query(Category).all()
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
-    return render_template('login.html', STATE=state)
+    return render_template('login.html', STATE=state, categories=categories)
 
 
 # FACEBOOK Connect
