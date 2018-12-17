@@ -176,10 +176,10 @@ def disconnect():
         del login_session['user_id']
         del login_session['provider']
         flash("You have successfully been logged out.")
-        return redirect(url_for('publicCatalog'))
+        return redirect(url_for('showCatalog'))
     else:
         flash("You were not logged in")
-        return redirect(url_for('publicCatalog'))
+        return redirect(url_for('showCatalog'))
 
 
 # User Helper Functions
@@ -195,8 +195,11 @@ def createUser(login_session):
 
 def getUserInfo(user_id):
     session = connect()
-    user = session.query(User).filter_by(id=user_id).one()
-    return user
+    try:
+        user = session.query(User).filter_by(id=user_id).one()
+        return user
+    except:
+        return None
 
 
 def getUserID(email):
@@ -312,8 +315,8 @@ def showCategory(category_id):
     category = session.query(Category).filter_by(id=category_id).one()
     creator = getUserInfo(category.user_id)
     items = session.query(Item).filter_by(category_id=category.id).all()
-    if 'username' not in login_session or creator.id != login_session['user_id']:
-        return render_template('publicCategory', category=category, items=items, categories=categories)
+    if 'username' not in login_session or creator == None or creator.id != login_session['user_id']:
+        return render_template('publicCategory.html', category=category, items=items, categories=categories)
     else:
         return render_template('showCategory.html', category=category, items=items, categories=categories)
 
@@ -325,6 +328,7 @@ def newItem(category_id):
     if 'username' not in login_session:
         return redirect('/login')
     categories = session.query(Category).all()
+    category = session.query(Category).filter_by(id=category_id).one()
     if category.user_id != login_session['user_id']:
         return """<script>function myFunction() {alert('You are not authorized to create a new item here. 
             Please create your own category in order to create.');}</script><body onload='myFunction()'>"""
@@ -347,6 +351,7 @@ def editItem(category_id, item_id):
         return redirect('/login')
     categories = session.query(Category).all()
     item = session.query(Item).filter_by(category_id = category_id, id = item_id).one()
+    category = session.query(Category).filter_by(id=category_id).one()
     if category.user_id != login_session['user_id']:
         return """<script>function myFunction() {alert('You are not authorized to edit a new item here. 
             Please create your own category in order to edit.');}</script><body onload='myFunction()'>"""
@@ -375,6 +380,7 @@ def deleteItem(category_id, item_id):
         return redirect('/login')
     categories = session.query(Category).all()
     item = session.query(Item).filter_by(category_id = category_id, id = item_id).one()
+    category = session.query(Category).filter_by(id=category_id).one()
     if category.user_id != login_session['user_id']:
         return """<script>function myFunction() {alert('You are not authorized to delete a new item here. 
             Please create your own category in order to delete.');}</script><body onload='myFunction()'>"""

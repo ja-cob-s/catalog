@@ -11,7 +11,7 @@
                     <span>Categories</span>
                 </h6>
                     {% for c in categories %}
-                        <a class="list-group-item list-group-item-action bg-light" href={{ url_for('publicCategory', category_id=c.id)}}>{{c.name}}</a>
+                        <a class="list-group-item list-group-item-action bg-light" href={{ url_for('showCategory', category_id=c.id)}}>{{c.name}}</a>
                     {% endfor %}
             </div>
         </nav>
@@ -46,7 +46,7 @@
                 <div class="list-group">
                 <h4 class="mb-1" style="text-align:center">Recently Added Items</h4>
                     {% for i in items %}
-                        <a href={{url_for('publicCategory', category_id = i.category_id)}} class="list-group-item list-group-item-action flex-column align-items-start">
+                        <a href={{url_for('showCategory', category_id = i.category_id)}} class="list-group-item list-group-item-action flex-column align-items-start">
                             <div class="d-flex w-100 justify-content-between">
                             <h5 class="mb-1">{{i.name}}</h5>
                             {{i.price}}
