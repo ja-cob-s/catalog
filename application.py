@@ -287,7 +287,7 @@ def getUserInfo(user_id):
     try:
         user = session.query(User).filter_by(id=user_id).one()
         return user
-    except:
+    except:  # noqa
         return None
 
 
@@ -296,7 +296,7 @@ def getUserID(email):
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
-    except:
+    except:  # noqa
         return None
 
 
@@ -348,7 +348,7 @@ def newCategory():
         return redirect('/login')
     categories = session.query(Category).all()
     if request.method == 'POST':
-        category = Category(name=request.form['name'], 
+        category = Category(name=request.form['name'],
                             user_id=login_session['user_id'])
         session.add(category)
         session.commit()
