@@ -287,7 +287,7 @@ def getUserInfo(user_id):
     try:
         user = session.query(User).filter_by(id=user_id).one()
         return user
-    except NameError:
+    except:
         return None
 
 
@@ -296,7 +296,7 @@ def getUserID(email):
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
-    except NameError:
+    except:
         return None
 
 
@@ -348,7 +348,8 @@ def newCategory():
         return redirect('/login')
     categories = session.query(Category).all()
     if request.method == 'POST':
-        category = Category(name=request.form['name'])
+        category = Category(name=request.form['name'], 
+                            user_id=login_session['user_id'])
         session.add(category)
         session.commit()
         flash("New category '%s' created!" % category.name)
@@ -437,7 +438,8 @@ def newItem(category_id):
     if request.method == 'POST':
         newItem = Item(name=request.form['name'],
                        description=request.form['description'],
-                       price=request.form['price'], category_id=category_id)
+                       price=request.form['price'], category_id=category_id,
+                       user_id=category.user_id)
         session.add(newItem)
         session.commit()
         flash("New item '%s' created!" % newItem.name)
