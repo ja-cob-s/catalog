@@ -4,17 +4,17 @@
 
 from flask import Flask, render_template, request, redirect, url_for
 from flask import flash, jsonify
+from flask import session as login_session
+from flask import make_response
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
-from flask import session as login_session
 import random
 import string
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
 import json
-from flask import make_response
 import requests
 
 
@@ -26,8 +26,10 @@ CLIENT_ID = json.loads(
 APPLICATION_NAME = "Item Catalog"
 
 
-# Connect to database
 def connect():
+    """ Makes connection with database.
+        Returns: the DBSession
+    """
     engine = create_engine('sqlite:///itemcatalog.db')
     Base.metadata.bind = engine
     DBSession = sessionmaker(bind=engine)
@@ -35,9 +37,12 @@ def connect():
     return session
 
 
-# Create anti-forgery state token
+###################################
+# Authentication Helper Functions #
+###################################
 @app.route('/login')
 def showLogin():
+    """ Create anti-forgery state token"""
     session = connect()
     categories = session.query(Category).all()
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
@@ -46,9 +51,9 @@ def showLogin():
     return render_template('login.html', STATE=state, categories=categories)
 
 
-# FACEBOOK Connect
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
+    """ Handles FACEBOOK OAuth connection"""
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -119,9 +124,9 @@ def fbconnect():
     return output
 
 
-# FACEBOOK Disconnect
 @app.route('/fbdisconnect')
 def fbdisconnect():
+    """ Handles FACEBOOK OAuth disconnect"""
     facebook_id = login_session['facebook_id']
     # The access token must me included to successfully logout
     access_token = login_session['access_token']
@@ -131,9 +136,9 @@ def fbdisconnect():
     return "you have been logged out"
 
 
-# GOOGLE Connect
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    """ Handles GOOGLE OAuth connection"""
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -184,7 +189,8 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'), 200)  # noqa
+        response = make_response(json.dumps(
+                                 'Current user is already connected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -224,10 +230,11 @@ def gconnect():
     return output
 
 
-# GOOGLE Disconnect
-# Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
+    """ Handles GOOGLE OAuth disconnect.
+        Revokes a current user's token and resets their login_session.
+    """
     # Only disconnect a connected user.
     access_token = login_session.get('access_token')
     if access_token is None:
@@ -248,9 +255,12 @@ def gdisconnect():
         return response
 
 
-# Disconnect based on provider
 @app.route('/disconnect')
 def disconnect():
+    """ Disconnect based on provider.
+        Checks if user is authorized with GOOGLE or FACEBOOK
+        and calls the appropriate function.
+    """
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
@@ -270,9 +280,14 @@ def disconnect():
         flash("You were not logged in")
         return redirect(url_for('showCatalog'))
 
-
-# User Helper Functions
+#########################
+# User Helper Functions #
+#########################
 def createUser(login_session):
+    """ Creates a new user in the database
+        Args: login_session
+        Returns: newly assigned user.id of the user
+    """
     session = connect()
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
@@ -283,6 +298,9 @@ def createUser(login_session):
 
 
 def getUserInfo(user_id):
+    """ Args: user_id: the user.id of the user to look up
+        Returns: user object or None if user not found
+    """
     session = connect()
     try:
         user = session.query(User).filter_by(id=user_id).one()
@@ -292,6 +310,9 @@ def getUserInfo(user_id):
 
 
 def getUserID(email):
+    """ Args: email: the email address of the user to look up
+        Returns: user.id of the user or None if user not found
+    """
     session = connect()
     try:
         user = session.query(User).filter_by(email=email).one()
@@ -300,35 +321,50 @@ def getUserID(email):
         return None
 
 
-# JSON endpoint for catalog categories
+#########################
+# JSON Helper Functions #
+#########################
 @app.route('/catalog/JSON')
 def catalogJSON():
+    """ Returns: JSON endpoint for catalog categories"""
     session = connect()
     catalog = session.query(Category).all()
     return jsonify(Categories=[c.serialize for c in catalog])
 
 
-# JSON endpoint for category items
 @app.route('/catalog/<int:category_id>/items/JSON')
 def categoryJSON(category_id):
+    """ Args: category_id: category.id of desired category
+        Returns: JSON endpoint for category items
+    """
     session = connect()
     items = session.query(Item).filter_by(category_id=category_id).all()
     return jsonify(Items=[i.serialize for i in items])
 
 
-# JSON endpoint for a single item
 @app.route('/catalog/<int:category_id>/items/<int:item_id>/JSON')
 def itemJSON(category_id, item_id):
+    """ Args: category_id: category.id of parent category
+              item_id: item.id of desired item
+        Returns: JSON endpoint for a single item
+    """
     session = connect()
     item = session.query(Item).filter_by(category_id=category_id,
                                          id=item_id).one()
     return jsonify(Item=item.serialize)
 
 
-# Show catalog main page
+#########################
+# CRUD Helper Functions #
+#########################
 @app.route('/')
 @app.route('/catalog/')
 def showCatalog():
+    """ R - READ
+        Show catalog main page which displays recently added items.
+        Checks if user is authenticated and allows appropriate privileges.
+        Returns: HTML of catalog main page
+    """
     session = connect()
     categories = session.query(Category).all()
     items = session.query(Item).order_by(desc(Item.id)).limit(10).all()
@@ -340,9 +376,12 @@ def showCatalog():
                                items=items)
 
 
-# Add new category
 @app.route('/catalog/new/', methods=['GET', 'POST'])
 def newCategory():
+    """ C - CREATE a new category.
+        Checks if user is authenticated and allows appropriate privileges.
+        Returns: HTML of new category page
+    """
     session = connect()
     if 'username' not in login_session:
         return redirect('/login')
@@ -358,9 +397,13 @@ def newCategory():
         return render_template('newCategory.html', categories=categories)
 
 
-# Edit a category
 @app.route('/catalog/<int:category_id>/edit', methods=['GET', 'POST'])
 def editCategory(category_id):
+    """ U - UPDATE a category.
+        Checks if user is authenticated and allows appropriate privileges.
+        Args: category_id: category.id of desired category
+        Returns: HTML of edit category page
+    """
     session = connect()
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one()
@@ -382,9 +425,13 @@ def editCategory(category_id):
                            category=category, categories=categories)
 
 
-# Delete a category
 @app.route('/catalog/<int:category_id>/delete', methods=['GET', 'POST'])
 def deleteCategory(category_id):
+    """ D - DELETE a category
+        Checks if user is authenticated and allows appropriate privileges
+        Args: category_id: category.id of desired category
+        Returns: HTML of delete category page
+    """
     session = connect()
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one()
@@ -405,10 +452,14 @@ def deleteCategory(category_id):
                                category=category, categories=categories)
 
 
-# Show a category
 @app.route('/catalog/<int:category_id>')
 @app.route('/catalog/<int:category_id>/items')
 def showCategory(category_id):
+    """ R - READ
+        Show category page which lists all items in that category.
+        Checks if user is authenticated and allows appropriate privileges.
+        Returns: HTML of category page
+    """
     session = connect()
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(id=category_id).one()
@@ -422,9 +473,13 @@ def showCategory(category_id):
                                items=items, categories=categories)
 
 
-# Add a new item
 @app.route('/catalog/<int:category_id>/items/new', methods=['GET', 'POST'])
 def newItem(category_id):
+    """ C - CREATE a new item.
+        Checks if user is authenticated and allows appropriate privileges.
+        Args: category_id: category.id of parent category
+        Returns: HTML of new item page
+    """
     session = connect()
     if 'username' not in login_session:
         return redirect('/login')
@@ -450,10 +505,15 @@ def newItem(category_id):
                                categories=categories)
 
 
-# Edit an item
 @app.route('/catalog/<int:category_id>/items/<int:item_id>/edit',
            methods=['GET', 'POST'])
 def editItem(category_id, item_id):
+    """ U - UPDATE an item.
+        Checks if user is authenticated and allows appropriate privileges.
+        Args: category_id: category.id of parent category
+              item_id: item.id of desired item
+        Returns: HTML of edit item page
+    """
     session = connect()
     if 'username' not in login_session:
         return redirect('/login')
@@ -486,10 +546,15 @@ def editItem(category_id, item_id):
                                categories=categories)
 
 
-# Delete an item
 @app.route('/catalog/<int:category_id>/items/<int:item_id>/delete',
            methods=['GET', 'POST'])
 def deleteItem(category_id, item_id):
+    """ D - DELETE an item
+        Checks if user is authenticated and allows appropriate privileges
+        Args: category_id: category.id of parent category
+              item_id: item.id of desired item
+        Returns: HTML of delete item page
+    """
     session = connect()
     if 'username' not in login_session:
         return redirect('/login')
