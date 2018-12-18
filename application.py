@@ -65,7 +65,8 @@ def fbconnect():
         'web']['app_id']
     app_secret = json.loads(
         open('fb_client_secrets.json', 'r').read())['web']['app_secret']
-    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (app_id, app_secret, access_token)  # noqa
+    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (  # noqa
+          app_id, app_secret, access_token)
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
 
@@ -130,7 +131,8 @@ def fbdisconnect():
     facebook_id = login_session['facebook_id']
     # The access token must me included to successfully logout
     access_token = login_session['access_token']
-    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id, access_token)  # noqa
+    url = ('https://graph.facebook.com/%s/permissions?access_token=%s' %
+           (facebook_id, access_token))
     h = httplib2.Http()
     result = h.request(url, 'DELETE')[1]
     return "you have been logged out"
@@ -250,7 +252,9 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
     else:
-        response = make_response(json.dumps('Failed to revoke token for given user.', 400))  # noqa
+        response = make_response(json.dumps(
+                                 'Failed to revoke token for given user.',
+                                 400))
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -280,6 +284,7 @@ def disconnect():
         flash("You were not logged in")
         return redirect(url_for('showCatalog'))
 
+
 #########################
 # User Helper Functions #
 #########################
@@ -302,11 +307,8 @@ def getUserInfo(user_id):
         Returns: user object or None if user not found
     """
     session = connect()
-    try:
-        user = session.query(User).filter_by(id=user_id).one()
-        return user
-    except:  # noqa
-        return None
+    user = session.query(User).filter_by(id=user_id).one_or_none()
+    return user
 
 
 def getUserID(email):
@@ -314,11 +316,8 @@ def getUserID(email):
         Returns: user.id of the user or None if user not found
     """
     session = connect()
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:  # noqa
-        return None
+    user = session.query(User).filter_by(email=email).one_or_none()
+    return user.id
 
 
 #########################
@@ -465,7 +464,9 @@ def showCategory(category_id):
     category = session.query(Category).filter_by(id=category_id).one()
     creator = getUserInfo(category.user_id)
     items = session.query(Item).filter_by(category_id=category.id).all()
-    if ('username' not in login_session or creator is None or creator.id != login_session['user_id']):  # noqa
+    if ('username' not in login_session or
+            creator is None or
+            creator.id != login_session['user_id']):
         return render_template('publicCategory.html', category=category,
                                items=items, categories=categories)
     else:
