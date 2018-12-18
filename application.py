@@ -415,6 +415,7 @@ def editCategory(category_id):
             </script><body onload='myFunction()'>"""
     if request.method == 'POST':
         if request.form['name']:
+            # Only updates if form is filled out
             category.name = request.form['name']
             flash('Category renamed to %s!' % category.name)
         session.add(category)
@@ -529,12 +530,15 @@ def editItem(category_id, item_id):
             </script><body onload='myFunction()'>"""
     if request.method == 'POST':
         if request.form['name']:
+            # Only updates if form is filled out
             item.name = request.form['name']
             flash("Item renamed to '%s'!" % item.name)
         if request.form['price']:
+            # Only updates if form is filled out
             item.price = request.form['price']
             flash("Item '%s' price changed to %s!" % (item.name, item.price))
         if request.form['description']:
+            # Only updates if form is filled out
             item.description = request.form['description']
             flash("Item '%s' description changed!" % item.name)
         session.add(item)
