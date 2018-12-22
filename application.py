@@ -317,7 +317,10 @@ def getUserID(email):
     """
     session = connect()
     user = session.query(User).filter_by(email=email).one_or_none()
-    return user.id
+    if user is None:
+        return None
+    else:
+        return user.id
 
 
 #########################
