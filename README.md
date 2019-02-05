@@ -7,6 +7,9 @@ This project is a RESTful web application which accesses a SQL database that pop
 * The **Category** table lists each category and its authorized user.
 * The **Item** table lists each item with its own category and authorized user.
 
+### Update
+Instead of following the instructions below to run the web application on your localhost, you can now simply view a live version at https://shybull.net
+
 ### Requirements
 * [Python 3](https://www.python.org/)
 * [Vagrant](https://www.vagrantup.com/)
